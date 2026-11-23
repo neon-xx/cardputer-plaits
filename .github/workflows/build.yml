@@ -53,28 +53,37 @@ jobs:
             .pio/build/cardputer-adv/bootloader.bin
             .pio/build/cardputer-adv/partitions.bin
 
-  release-assets:
-    name: Attach firmware to release
-    if: github.event_name == 'release'
+  release:
+    name: Publish release
+    # Runs when a version tag (v*) is pushed, or when a release is published by hand.
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
     needs: [host-test, firmware]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: plaitsputer-firmware
           path: fw
-      - name: Rename, checksum and upload
+      - name: Create release (if needed) and upload firmware
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ github.event.release.tag_name || github.ref_name }}
         run: |
           cd fw
-          mv plaitsputer-merged.bin "plaitsputer-${TAG}-merged.bin"
+          mv plaitsputer-merged.bin     "plaitsputer-${TAG}-merged.bin"
           mv plaitsputer-m5launcher.bin "plaitsputer-${TAG}-m5launcher.bin"
-          mv firmware.bin "plaitsputer-${TAG}-app.bin"
-          mv bootloader.bin "plaitsputer-${TAG}-bootloader.bin"
-          mv partitions.bin "plaitsputer-${TAG}-partitions.bin"
+          mv firmware.bin               "plaitsputer-${TAG}-app.bin"
+          mv bootloader.bin             "plaitsputer-${TAG}-bootloader.bin"
+          mv partitions.bin             "plaitsputer-${TAG}-partitions.bin"
           sha256sum *.bin > SHA256SUMS.txt
-          gh release upload "$TAG" *.bin SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            sed "s/__TAG__/${TAG}/g" ../.github/RELEASE_NOTES.md > notes.md
+            PRE=""
+            case "$TAG" in v0.*|*-*) PRE="--prerelease" ;; esac   # v0.x and v1.0-rc etc.
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+              --title "Plaitsputer ${TAG}" --notes-file notes.md $PRE
+          fi
+          gh release upload "$TAG" *.bin SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"

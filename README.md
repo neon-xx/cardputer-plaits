@@ -200,6 +200,16 @@ acceleration. Mod wheel and sustain are always treated as absolute.
   so the ADSRs shape every engine. Percussive engines still ring on their own envelope
   inside the ADSR, and velocity goes to their *accent* input.
 
+## Making a release
+
+Push a version tag, and CI builds the firmware and publishes a GitHub release
+with all the images attached:
+```
+git tag v0.2.0 && git push origin v0.2.0
+```
+Tags starting with `v0.` or containing `-` (e.g. `v1.0-rc1`) are marked as
+pre-releases. The release text comes from `.github/RELEASE_NOTES.md`.
+
 ## Host test (PC)
 
 ```
