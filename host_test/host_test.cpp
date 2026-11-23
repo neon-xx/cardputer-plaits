@@ -12,6 +12,7 @@
 #include <cstring>
 #include <vector>
 
+#include "synth/keymap.h"
 #include "synth/midi_parser.h"
 #include "synth/params.h"
 #include "synth/synth.h"
@@ -113,6 +114,23 @@ static void testParsers() {
   assert(decodeRelative(ENC_REL_SIGNBIT, 65) == -1);
   assert(decodeRelative(ENC_REL_SIGNBIT, 72) == -8);
   printf("parsers + encoder decoding: OK\n");
+
+  // Keyboard note layout
+  {
+    const char* white_lo = "zxcvbnm,./";
+    const int wl[] = {0, 2, 4, 5, 7, 9, 11, 12, 14, 16};
+    for (int i = 0; white_lo[i]; ++i) assert(keyToSemitone(white_lo[i]) == wl[i]);
+    const char* white_hi = "qwertyuiop[]";
+    const int wh[] = {12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29, 31};
+    for (int i = 0; white_hi[i]; ++i) assert(keyToSemitone(white_hi[i]) == wh[i]);
+    assert(keyToSemitone('s') == 1 && keyToSemitone('j') == 10 && keyToSemitone(';') == 15);
+    assert(keyToSemitone('2') == 13 && keyToSemitone('=') == 30);
+    assert(keyToSemitone('a') < 0 && keyToSemitone('`') < 0 && keyToSemitone('1') < 0 &&
+           keyToSemitone('-') < 0 && keyToSemitone('\\') < 0 && keyToSemitone('\'') < 0);
+    assert(unshiftKey('Z') == 'z' && unshiftKey('<') == ',' && unshiftKey('@') == '2' &&
+           unshiftKey('+') == '=' && unshiftKey(':') == ';');
+    printf("keyboard note layout: OK\n");
+  }
 }
 
 static void cc(Synth& s, int n, int v) { s.handleMidi({0xB0, uint8_t(n), uint8_t(v)}); }

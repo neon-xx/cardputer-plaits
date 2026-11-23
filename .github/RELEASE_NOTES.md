@@ -20,6 +20,7 @@ If the device isn't found, switch the power off, hold **G0**, switch it on, then
 - Per voice: Plaits → 24 dB/oct resonant ladder low-pass (self-oscillating) → amp ADSR, plus a filter ADSR
 - MIDI over **BLE-MIDI** ("Plaitsputer") and the **M5Stack Unit MIDI** on the Grove port (set its switch to BYPASS)
 - Full CC map, with **absolute or relative encoders** set globally or per CC (see the [README](https://github.com/neon-xx/cardputer-plaits#readme))
+- **Play from the Cardputer keyboard**: press Tab for a two-and-a-half-octave musical-typing layout (z-row and q-row, with black keys on the rows above)
 - The display stays frozen while notes are sounding, so drawing never takes CPU from the audio
 
 ### Credits

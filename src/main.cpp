@@ -44,7 +44,12 @@ void setup() {
   M5Cardputer.begin(cfg, true);
   Serial.begin(115200);
 
-  M5Cardputer.Display.setRotation(1);
+  // M5GFX already rotates the ADV panel to landscape (rotation offset 1),
+  // so keep its default. Only fix it up if a library change ever leaves us
+  // in portrait.
+  if (M5Cardputer.Display.width() < M5Cardputer.Display.height()) {
+    M5Cardputer.Display.setRotation(M5Cardputer.Display.getRotation() ^ 1);
+  }
   M5Cardputer.Display.setBrightness(80);
   gUi.bootMessage("Starting audio...", "");
 

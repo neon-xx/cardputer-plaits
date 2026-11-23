@@ -8,6 +8,7 @@
 #include "ble_midi.h"
 #include "config.h"
 #include "events.h"
+#include "synth/keymap.h"
 #include "uart_midi.h"
 
 namespace hw {
@@ -34,7 +35,88 @@ void Ui::begin(ps::Synth* synth, DeviceSettings* dev) {
   synth_ = synth;
   dev_ = dev;
   last_param_counter_ = synth->paramChangeCounter;
+  memset(held_note_, -1, sizeof(held_note_));
   dirty_ = true;
+}
+
+// ---------------------------------------------------------------------------
+// Keyboard: edge detection on the set of held keys, so we see releases too.
+
+void Ui::scanKeyboard() {
+  const auto& st = M5Cardputer.Keyboard.keysState();
+  bool now[128] = {};
+  char raw[128] = {};
+  for (char c : st.word) {
+    const uint8_t k = uint8_t(ps::unshiftKey(c)) & 0x7F;
+    now[k] = true;
+    raw[k] = c;
+  }
+  if (st.tab && !prev_tab_) setPlayMode(!play_mode_);
+  prev_tab_ = st.tab;
+  for (int k = 0; k < 128; ++k) {
+    if (now[k] && !prev_down_[k]) onKeyDown(uint8_t(k), raw[k]);
+    else if (!now[k] && prev_down_[k]) onKeyUp(uint8_t(k));
+    prev_down_[k] = now[k];
+  }
+}
+
+void Ui::playNoteOn(int note) {
+  if (note_refs_[note]++ == 0) {
+    Event e = {EV_NOTE_ON, uint8_t(note), uint8_t(velocity_), 0, 0.0f};
+    postEvent(e);
+  }
+}
+
+void Ui::playNoteOff(int note) {
+  if (note_refs_[note] == 0) return;
+  if (--note_refs_[note] == 0) {
+    Event e = {EV_NOTE_OFF, uint8_t(note), 0, 0, 0.0f};
+    postEvent(e);
+  }
+}
+
+void Ui::onKeyDown(uint8_t key, char raw) {
+  if (!play_mode_) {
+    handleChar(raw);   // raw keeps shift, for '_' and '+'
+    return;
+  }
+  const int semi = ps::keyToSemitone(char(key));
+  if (semi >= 0) {
+    const int note = 12 * (octave_ + 1) + semi;
+    if (note >= 0 && note <= 127) {
+      held_note_[key] = int8_t(note);
+      playNoteOn(note);
+    }
+    return;
+  }
+  switch (key) {   // play-mode controls on the keys the layout leaves free
+    case '`': if (octave_ > 0) --octave_; dirty_ = true; break;
+    case '1': if (octave_ < 7) ++octave_; dirty_ = true; break;
+    case '\'':
+      velocity_ = velocity_ >= 127 ? 40 : (velocity_ >= 100 ? 127 : (velocity_ >= 70 ? 100 : 70));
+      dirty_ = true;
+      break;
+    case '-': postNudge(ps::P_ENGINE, -1); break;
+    case '\\': postNudge(ps::P_ENGINE, +1); break;
+    default: break;
+  }
+}
+
+void Ui::onKeyUp(uint8_t key) {
+  if (held_note_[key] >= 0) {
+    playNoteOff(held_note_[key]);
+    held_note_[key] = -1;
+  }
+}
+
+void Ui::setPlayMode(bool on) {
+  if (!on) {   // release anything still held
+    for (int k = 0; k < 128; ++k) {
+      if (held_note_[k] >= 0) { playNoteOff(held_note_[k]); held_note_[k] = -1; }
+    }
+  }
+  play_mode_ = on;
+  setStatus(on ? "PLAY mode - Tab to edit" : "EDIT mode - Tab to play");
 }
 
 void Ui::bootMessage(const char* line1, const char* line2) {
@@ -147,11 +229,8 @@ void Ui::handleChar(char c) {
 
 void Ui::loop() {
   M5Cardputer.update();
-  if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
-    const auto& st = M5Cardputer.Keyboard.keysState();
-    // Arrow keys arrive as the ; . , / characters printed beneath them.
-    for (char c : st.word) handleChar(c);
-  }
+  // Arrow keys arrive as the ; . , / characters printed beneath them.
+  scanKeyboard();
 
   // Track state changes that need a redraw.
   if (synth_->paramChangeCounter != last_param_counter_) {
@@ -182,7 +261,7 @@ void Ui::loop() {
       audioResetPeak();
     }
   }
-  delay(10);
+  delay(5);
 }
 
 void Ui::draw() {
@@ -197,7 +276,13 @@ void Ui::draw() {
   d.fillRect(0, 0, 240, 12, kBarBg);
   d.setTextDatum(textdatum_t::top_left);
   d.setTextColor(TFT_WHITE, kBarBg);
-  snprintf(buf, sizeof(buf), "PLAITS %d/%dv", synth_->polyphony(), synth_->numVoices());
+  if (play_mode_) {
+    d.setTextColor(TFT_BLACK, TFT_ORANGE);
+    d.fillRect(0, 0, 88, 12, TFT_ORANGE);
+    snprintf(buf, sizeof(buf), "PLAY C%d v%d", octave_, velocity_);
+  } else {
+    snprintf(buf, sizeof(buf), "PLAITS %d/%dv", synth_->polyphony(), synth_->numVoices());
+  }
   d.drawString(buf, 3, 2);
   d.setTextColor(last_ble_ > 0 ? TFT_GREEN : TFT_DARKGREY, kBarBg);
   snprintf(buf, sizeof(buf), last_ble_ > 0 ? "BLE:%d" : "BLE", last_ble_);
@@ -260,6 +345,9 @@ void Ui::draw() {
     d.setTextColor(TFT_YELLOW, kBarBg);
     d.drawString(status_, 3, 125);
     status_[0] = 0;
+  } else if (play_mode_) {
+    d.setTextColor(TFT_WHITE, kBarBg);
+    d.drawString("`/1 oct  ' vel  -/\\ engine  Tab", 3, 125);
   } else {
     d.setTextColor(TFT_WHITE, kBarBg);
     const int cc = synth_->lastCC;

@@ -18,6 +18,8 @@ A polyphonic port of Mutable Instruments **Plaits** for the **M5Stack Cardputer 
   saturating, self-oscillates) → **amp ADSR**. There's also a separate **filter ADSR**.
 * MIDI input over **BLE-MIDI** and the **M5Stack Unit MIDI (U187)**, both at the same time.
 * MIDI CC control with **absolute or relative encoder** support, set globally or per CC.
+* **Playable from the built-in keyboard**: Tab switches to a two-and-a-half-octave
+  "musical typing" layout.
 * The display **doesn't redraw while any voice is sounding**. It refreshes 250 ms after
   the last voice goes quiet. The keyboard still works while you play.
 * Voices are split across both CPU cores. A load meter is built in, and voices are
@@ -94,7 +96,33 @@ MIDI IN through to the Grove port, so nothing arrives. The pins are set in `src/
 RX = G1 (Grove white), TX = G2. To use the EXT header UART instead, set RX = 15, TX = 13.
 `DIN` in the header turns green once serial MIDI bytes have been received.
 
-## Keyboard controls
+## Playing from the Cardputer keyboard
+
+Press **Tab** to switch between **EDIT** mode and **PLAY** mode. The header turns
+orange and shows `PLAY` with the current octave and velocity. Press Tab again
+to go back to editing; any held notes are released.
+
+In PLAY mode the keyboard works like a tracker / DAW "musical typing" layout,
+covering about two and a half octaves:
+
+```
+ black:   2 3   5 6 7   9 0   =
+ white:  q w e r t y u i o p [ ]      <- C4 upwards (default)
+ black:   s d   g h j   l ;
+ white:  z x c v b n m , . /          <- C3 upwards (default)
+```
+
+| Key (PLAY mode) | Action |
+|---|---|
+| `` ` `` / `1` | octave down / up (z = C0 … C7) |
+| `'` | cycle velocity: 70 → 100 → 127 → 40 |
+| `-` / `\` | previous / next engine |
+| Tab | back to EDIT mode |
+
+The keyboard plays polyphonically alongside MIDI. Its notes ignore the MIDI
+channel setting. The screen still waits until everything is silent before redrawing.
+
+## Keyboard controls (EDIT mode)
 
 | Key | Action |
 |---|---|
@@ -107,6 +135,7 @@ RX = G1 (Grove white), TX = G2. To use the EXT header UART instead, set RX = 15,
 | `x` | cycle the encoder mode **override for the last CC received** |
 | `c` | MIDI channel: ALL, 1 … 16 |
 | `[` / `]` | output level (speaker and headphone master volume) |
+| Tab | switch to PLAY mode |
 | `t` | test note on/off (C4) |
 | `p` | panic (all sound off) |
 | `s` | save the patch (written once the synth is silent) |

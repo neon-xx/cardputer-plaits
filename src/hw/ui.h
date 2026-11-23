@@ -16,6 +16,12 @@ class Ui {
 
  private:
   void handleChar(char c);
+  void scanKeyboard();
+  void onKeyDown(uint8_t key, char raw);
+  void onKeyUp(uint8_t key);
+  void setPlayMode(bool on);
+  void playNoteOn(int note);
+  void playNoteOff(int note);
   void nudgeSelected(int steps);
   void setStatus(const char* s);
   void settingsChanged();
@@ -35,6 +41,15 @@ class Ui {
   uint32_t settings_changed_ms_ = 0;
   bool patch_save_pending_ = false;
   char status_[40] = {0};
+
+  // Keyboard scanning / play mode
+  bool play_mode_ = false;
+  int octave_ = 3;            // z = C3 (MIDI 48), q = C4
+  int velocity_ = 100;
+  bool prev_down_[128] = {};
+  bool prev_tab_ = false;
+  int8_t held_note_[128];     // note started by each key, -1 if none
+  uint8_t note_refs_[128] = {};  // keys holding each MIDI note
 };
 
 }  // namespace hw
