@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  host-test:
+    name: Host tests (synth core on Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run
+        run: make -C host_test && ./host_test/host_test
+
+  firmware:
+    name: Firmware (Cardputer ADV)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+      - name: Install PlatformIO
+        run: pip install --upgrade platformio
+      - name: Build
+        run: pio run -e cardputer-adv
+      - name: Merge into a single flashable image
+        run: |
+          B=.pio/build/cardputer-adv
+          APP0=$(find ~/.platformio/packages/framework-arduinoespressif32 -name boot_app0.bin | head -1)
+          pio pkg exec -p tool-esptoolpy -- esptool.py --chip esp32s3 merge_bin \
+            -o $B/plaitsputer-merged.bin --flash_mode dio --flash_size 8MB \
+            0x0 $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 "$APP0" 0x10000 $B/firmware.bin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plaitsputer-firmware
+          path: |
+            .pio/build/cardputer-adv/plaitsputer-merged.bin
+            .pio/build/cardputer-adv/firmware.bin
+            .pio/build/cardputer-adv/bootloader.bin
+            .pio/build/cardputer-adv/partitions.bin
