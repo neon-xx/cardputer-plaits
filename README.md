@@ -23,15 +23,30 @@ A polyphonic port of Mutable Instruments **Plaits** for the **M5Stack Cardputer 
 * Voices are split across both CPU cores. A load meter is built in, and voices are
   shed automatically if the CPU overloads.
 
-> **Status:** the DSP core (Plaits, filter, envelopes, voice allocation, MIDI and
-> BLE-MIDI parsing, CC and encoder handling) is compiled and tested on a PC with
-> `host_test/`. The ESP32 code was written against the real M5Unified 0.3,
-> M5Cardputer 1.1.1 and NimBLE-Arduino 2.3.4 APIs. It hasn't been built or run on
-> hardware yet, so the first `pio run` may need small fixes.
+> **Status:** the firmware compiles in CI (GitHub Actions, PlatformIO,
+> M5Unified 0.3.0, M5Cardputer 1.1.1, NimBLE-Arduino 2.3.x). It uses about
+> 39 KB of static RAM, which leaves the rest for Plaits voices, and about 1 MB of flash.
+> The DSP core is tested on Linux by `host_test/`. It hasn't been tried on real
+> hardware yet, so please report what you hear and the `pk%` load figures.
 
 ---
 
-## Build & flash
+## Flash a prebuilt firmware (no toolchain needed)
+
+Every push to this repo is built by GitHub Actions. To flash it:
+
+1. Open the [Actions tab](../../actions), pick the latest green **build** run and
+   download the **plaitsputer-firmware** artifact (you need to be signed in to GitHub).
+2. Unzip it and flash `plaitsputer-merged.bin` at offset **0x0**, either with
+   [ESP Web Tool / esptool-js](https://espressif.github.io/esptool-js/) in Chrome,
+   or from a terminal:
+   ```
+   esptool.py --chip esp32s3 write_flash 0x0 plaitsputer-merged.bin
+   ```
+   If the device isn't found, enter download mode: switch the power off, hold
+   **G0**, switch it on, then release G0.
+
+## Build & flash from source
 
 1. Install [PlatformIO](https://platformio.org/) (VS Code extension or `pip install platformio`).
 2. Connect the Cardputer ADV over USB-C and run:
