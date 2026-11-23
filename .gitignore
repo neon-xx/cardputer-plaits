@@ -1,0 +1,5 @@
+.pio/
+.vscode/
+host_test/host_test
+host_test/demo.wav
+host_test/build/
