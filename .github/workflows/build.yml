@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Publish a release with this tag, e.g. v0.1.0 (leave empty to just build)"
+        required: false
+        default: ""
   release:
     types: [published]
 
@@ -55,8 +60,12 @@ jobs:
 
   release:
     name: Publish release
-    # Runs when a version tag (v*) is pushed, or when a release is published by hand.
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'release'
+    # Runs when: "Run workflow" is used with a release tag, a v* tag is pushed,
+    # or a release is published by hand on GitHub.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.event_name == 'release'
     needs: [host-test, firmware]
     runs-on: ubuntu-latest
     permissions:
@@ -70,7 +79,7 @@ jobs:
       - name: Create release (if needed) and upload firmware
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name || github.ref_name }}
+          TAG: ${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}
         run: |
           cd fw
           mv plaitsputer-merged.bin     "plaitsputer-${TAG}-merged.bin"
@@ -79,11 +88,15 @@ jobs:
           mv bootloader.bin             "plaitsputer-${TAG}-bootloader.bin"
           mv partitions.bin             "plaitsputer-${TAG}-partitions.bin"
           sha256sum *.bin > SHA256SUMS.txt
+          sed "s/__TAG__/${TAG}/g" ../.github/RELEASE_NOTES.md > notes.md
           if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            sed "s/__TAG__/${TAG}/g" ../.github/RELEASE_NOTES.md > notes.md
             PRE=""
             case "$TAG" in v0.*|*-*) PRE="--prerelease" ;; esac   # v0.x and v1.0-rc etc.
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            # Creates the tag on this commit if it doesn't exist yet.
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
               --title "Plaitsputer ${TAG}" --notes-file notes.md $PRE
+          elif [ -z "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)" ]; then
+            # Release made by hand with no description: fill in the standard notes.
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file notes.md
           fi
           gh release upload "$TAG" *.bin SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"

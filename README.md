@@ -202,11 +202,12 @@ acceleration. Mod wheel and sustain are always treated as absolute.
 
 ## Making a release
 
-Push a version tag, and CI builds the firmware and publishes a GitHub release
-with all the images attached:
-```
-git tag v0.2.0 && git push origin v0.2.0
-```
+On GitHub, open **Actions**, then **build**, then **Run workflow**. Enter a tag such as
+`v0.2.0` and run it. CI builds the firmware, creates the tag and publishes a
+release with every image attached. Pushing a `v*` tag, or publishing a release
+by hand, does the same; a hand-made release with an empty description gets the
+standard notes filled in.
+
 Tags starting with `v0.` or containing `-` (e.g. `v1.0-rc1`) are marked as
 pre-releases. The release text comes from `.github/RELEASE_NOTES.md`.
 
