@@ -36,7 +36,8 @@ A polyphonic port of Mutable Instruments **Plaits** for the **M5Stack Cardputer 
 Every push to this repo is built by GitHub Actions. To flash it:
 
 1. Open the [Actions tab](../../actions), pick the latest green **build** run and
-   download the **plaitsputer-firmware** artifact (you need to be signed in to GitHub).
+   download the **plaitsputer-firmware** artifact (you need to be signed in to GitHub),
+   or grab the files from the [Releases page](../../releases).
 2. Unzip it and flash `plaitsputer-merged.bin` at offset **0x0**, either with
    [ESP Web Tool / esptool-js](https://espressif.github.io/esptool-js/) in Chrome,
    or from a terminal:
@@ -45,6 +46,22 @@ Every push to this repo is built by GitHub Actions. To flash it:
    ```
    If the device isn't found, enter download mode: switch the power off, hold
    **G0**, switch it on, then release G0.
+
+## Install with M5Launcher
+
+If you use [Launcher](https://github.com/bmorcelli/Launcher) (M5Launcher), use the
+**`plaitsputer-…-m5launcher.bin`** file. It's the app-only image, which Launcher
+installs into its own app slot without touching Launcher itself. Don't use the
+`-merged.bin` file with Launcher: that one is for flashing a whole device.
+
+1. Copy `plaitsputer-…-m5launcher.bin` to the Cardputer's SD card. You can also
+   upload it from your phone or computer with Launcher's **WUI** (web UI).
+2. In Launcher, open **SD**, select the file and choose **Install**.
+3. Plaitsputer starts. On later boots Launcher opens it automatically unless
+   you press a key.
+
+The app is about 1 MB, well within Launcher's default Cardputer partition. It
+stores settings and the saved patch in NVS, and needs no SPIFFS or FAT partition.
 
 ## Build & flash from source
 

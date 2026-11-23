@@ -41,11 +41,14 @@ jobs:
           pio pkg exec -p tool-esptoolpy -- esptool.py --chip esp32s3 merge_bin \
             -o $B/plaitsputer-merged.bin --flash_mode dio --flash_size 8MB \
             0x0 $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 "$APP0" 0x10000 $B/firmware.bin
+      - name: M5Launcher image (app-only, installs into Launcher's OTA slot)
+        run: cp .pio/build/cardputer-adv/firmware.bin .pio/build/cardputer-adv/plaitsputer-m5launcher.bin
       - uses: actions/upload-artifact@v4
         with:
           name: plaitsputer-firmware
           path: |
             .pio/build/cardputer-adv/plaitsputer-merged.bin
+            .pio/build/cardputer-adv/plaitsputer-m5launcher.bin
             .pio/build/cardputer-adv/firmware.bin
             .pio/build/cardputer-adv/bootloader.bin
             .pio/build/cardputer-adv/partitions.bin
@@ -69,6 +72,7 @@ jobs:
         run: |
           cd fw
           mv plaitsputer-merged.bin "plaitsputer-${TAG}-merged.bin"
+          mv plaitsputer-m5launcher.bin "plaitsputer-${TAG}-m5launcher.bin"
           mv firmware.bin "plaitsputer-${TAG}-app.bin"
           mv bootloader.bin "plaitsputer-${TAG}-bootloader.bin"
           mv partitions.bin "plaitsputer-${TAG}-partitions.bin"
