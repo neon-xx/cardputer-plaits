@@ -1,3 +1,6 @@
+// Plaits DSP: (c) Emilie Gillet / Mutable Instruments, MIT licence (lib/mutable).
+// This file and the voice management, filter and envelopes are part of the port.
+//
 // Polyphonic Plaits synth core: voice allocation, MIDI handling, per-voice
 // Plaits engine -> 24 dB ladder filter -> amp ADSR.
 //

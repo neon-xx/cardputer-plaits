@@ -49,6 +49,9 @@ void Ui::bootMessage(const char* line1, const char* line2) {
   d.setTextColor(TFT_WHITE, TFT_BLACK);
   d.drawString(line1, 8, 60);
   d.drawString(line2, 8, 74);
+  d.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  d.drawString("Plaits DSP by Emilie Gillet", 8, 104);
+  d.drawString("Mutable Instruments - MIT licence", 8, 116);
 }
 
 void Ui::setStatus(const char* s) {

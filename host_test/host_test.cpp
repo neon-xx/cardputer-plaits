@@ -1,4 +1,5 @@
 // Native (PC) test harness for the synth core. Not part of the firmware.
+// Links Emilie Gillet's Plaits DSP (Mutable Instruments, MIT licence).
 // Builds Plaits + the synth core with g++, renders WAV files, checks the
 // MIDI / BLE-MIDI parsers and the encoder decoding, and times each engine.
 //

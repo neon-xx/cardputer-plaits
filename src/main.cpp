@@ -1,5 +1,10 @@
 // Plaitsputer: polyphonic Mutable Instruments Plaits for the M5Stack
-// Cardputer ADV. Plaits DSP (c) Emilie Gillet, MIT licence.
+// Cardputer ADV.
+//
+// All synthesis engines are Plaits by Emilie Gillet (Mutable Instruments),
+// (c) 2016-2021 Emilie Gillet, MIT licence; see lib/mutable and
+// THIRD_PARTY_NOTICES.md. Unofficial port, not affiliated with or endorsed
+// by Mutable Instruments.
 //
 //   MIDI in (BLE-MIDI + M5Stack Unit MIDI) -> event queue -> audio task
 //   Audio task (core 1) + worker (core 0) -> per-voice Plaits -> 24 dB ladder

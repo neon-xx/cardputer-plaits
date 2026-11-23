@@ -6,6 +6,8 @@
 namespace ps {
 
 // Plaits 1.2 engine order (see plaits/dsp/voice.cc, Voice::Init).
+// The engines are Emilie Gillet's Plaits models (Mutable Instruments); these
+// are short on-screen descriptions, not official names.
 const char* const kEngineNames[kNumEngines] = {
   "VA + VCF",        // 0  green bank
   "Phase Dist",      // 1
