@@ -1,7 +1,7 @@
 {
   "name": "mutable",
   "version": "1.2.0",
-  "description": "Mutable Instruments Plaits 1.2 DSP and stmlib (MIT licence, Emilie Gillet), patched to build on non-ARM targets. Hardware drivers, UI and bootloader are not included.",
+  "description": "Mutable Instruments Plaits 1.2 DSP and stmlib by Emilie Gillet (MIT licence), vendored with small portability patches for non-ARM targets. Unofficial port, not affiliated with Mutable Instruments.",
   "license": "MIT",
   "frameworks": "*",
   "platforms": "*",
@@ -16,5 +16,18 @@
       "-Wno-unused-but-set-variable"
     ],
     "unflags": "-Os"
-  }
+  },
+  "authors": [
+    {
+      "name": "Emilie Gillet",
+      "email": "emilie.o.gillet@gmail.com",
+      "url": "https://mutable-instruments.net",
+      "maintainer": false
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pichenettes/eurorack"
+  },
+  "homepage": "https://pichenettes.github.io/mutable-instruments-documentation/modules/plaits/"
 }

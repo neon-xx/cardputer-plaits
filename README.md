@@ -1,8 +1,18 @@
 # Plaitsputer
 
-A polyphonic Mutable Instruments **Plaits** for the **M5Stack Cardputer ADV**.
+A polyphonic port of Mutable Instruments **Plaits** for the **M5Stack Cardputer ADV**.
 
-* All 24 Plaits 1.2 engines (Emilie Gillet's original DSP code, MIT licence).
+> **Credit:** Plaits was designed and written by **Émilie Gillet** of
+> [Mutable Instruments](https://mutable-instruments.net/modules/plaits/). Every
+> synthesis engine in this project is her code, taken from the open-source
+> [eurorack](https://github.com/pichenettes/eurorack) and
+> [stmlib](https://github.com/pichenettes/stmlib) repositories and used under
+> the MIT licence. This project adds polyphony, a filter, envelopes, MIDI
+> and the Cardputer hardware support around it.
+> It is an unofficial, independent port and is not affiliated with or endorsed
+> by Mutable Instruments or Émilie Gillet. See [Credits & licence](#credits--licence).
+
+* All 24 Plaits 1.2 engines, using the original DSP code unchanged.
 * Polyphony from 1 up to 8 voices, 5 by default (the maximum depends on free RAM at boot, typically 6).
 * Per voice: Plaits → **24 dB/oct resonant ladder low-pass** (zero-delay feedback,
   saturating, self-oscillates) → **amp ADSR**. There's also a separate **filter ADSR**.
@@ -31,8 +41,9 @@ A polyphonic Mutable Instruments **Plaits** for the **M5Stack Cardputer ADV**.
    ```
    If upload fails, enter download mode: switch the power off, hold **G0**, switch it on, then release G0.
 
-The first build downloads M5Cardputer, M5Unified and NimBLE-Arduino. The Plaits
-and stmlib sources are vendored in `lib/mutable` (see its README for the three small patches).
+The first build downloads M5Cardputer, M5Unified and NimBLE-Arduino. Émilie
+Gillet's Plaits and stmlib sources are included in `lib/mutable` (see its README
+and `THIRD_PARTY_NOTICES.md` for the three small portability patches).
 
 ## Connecting MIDI
 
@@ -181,11 +192,41 @@ src/hw/                 ESP32 / Cardputer layer
   ble_midi.*            BLE-MIDI peripheral (NimBLE)
   uart_midi.*           Unit MIDI / serial MIDI input
   ui.*, storage.*       display, keyboard, NVS settings
-lib/mutable/            vendored Plaits 1.2 DSP + stmlib (MIT)
+lib/mutable/            vendored Plaits 1.2 DSP + stmlib (Émilie Gillet, MIT)
 host_test/              native test harness
 ```
 
-## Licence
+## Credits & licence
 
-Plaits and stmlib: © Emilie Gillet, MIT licence (headers in each file).
-The rest of this project is offered under MIT too; change it as you like.
+**Plaits: Émilie Gillet, Mutable Instruments.**
+All the sound generation in this project comes from Plaits, Émilie Gillet's
+macro-oscillator module, released as open source by Mutable Instruments:
+
+* Plaits 1.2 DSP (`lib/mutable/src/plaits`), © 2016–2021 Emilie Gillet, MIT licence,
+  from [pichenettes/eurorack](https://github.com/pichenettes/eurorack).
+* stmlib (`lib/mutable/src/stmlib`), © 2012–2021 Emilie Gillet, MIT licence,
+  from [pichenettes/stmlib](https://github.com/pichenettes/stmlib).
+* Engine design, algorithms, wavetables, speech data and the built-in six-op FM
+  banks are all part of the original Plaits code. The engine names shown on
+  screen are short descriptions of Plaits' models.
+* Read the [Plaits manual](https://pichenettes.github.io/mutable-instruments-documentation/modules/plaits/manual/)
+  to learn what Harmonics, Timbre and Morph do in each engine.
+
+Three small portability changes were made to that code. No DSP was changed.
+They're listed in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), which
+also has the full MIT licence text and the exact upstream commits used. Every
+vendored file keeps its original copyright header.
+
+"Mutable Instruments" and "Plaits" refer to Émilie Gillet's company and module.
+This is an unofficial community port, not a Mutable Instruments product, and it
+isn't affiliated with or endorsed by Mutable Instruments or Émilie Gillet.
+If you enjoy these sounds, the original Eurorack module and its documentation
+are the real thing.
+
+**This project:** the polyphony, voice allocation, ladder filter, envelopes,
+MIDI and BLE-MIDI handling, UI and ESP32 code are released under the MIT licence
+(see [`LICENSE`](LICENSE)).
+
+Libraries downloaded at build time (M5Cardputer, M5Unified, M5GFX,
+NimBLE-Arduino) are covered by their own licences. See
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
