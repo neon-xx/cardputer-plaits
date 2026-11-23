@@ -149,11 +149,8 @@ void Ui::loop() {
   M5Cardputer.update();
   if (M5Cardputer.Keyboard.isChange() && M5Cardputer.Keyboard.isPressed()) {
     const auto& st = M5Cardputer.Keyboard.keysState();
+    // Arrow keys arrive as the ; . , / characters printed beneath them.
     for (char c : st.word) handleChar(c);
-    if (st.up) handleChar(';');
-    if (st.down) handleChar('.');
-    if (st.left) handleChar(',');
-    if (st.right) handleChar('/');
   }
 
   // Track state changes that need a redraw.
