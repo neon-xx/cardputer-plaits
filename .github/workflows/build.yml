@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   host-test:
@@ -47,3 +49,28 @@ jobs:
             .pio/build/cardputer-adv/firmware.bin
             .pio/build/cardputer-adv/bootloader.bin
             .pio/build/cardputer-adv/partitions.bin
+
+  release-assets:
+    name: Attach firmware to release
+    if: github.event_name == 'release'
+    needs: [host-test, firmware]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: plaitsputer-firmware
+          path: fw
+      - name: Rename, checksum and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cd fw
+          mv plaitsputer-merged.bin "plaitsputer-${TAG}-merged.bin"
+          mv firmware.bin "plaitsputer-${TAG}-app.bin"
+          mv bootloader.bin "plaitsputer-${TAG}-bootloader.bin"
+          mv partitions.bin "plaitsputer-${TAG}-partitions.bin"
+          sha256sum *.bin > SHA256SUMS.txt
+          gh release upload "$TAG" *.bin SHA256SUMS.txt --clobber --repo "${{ github.repository }}"
